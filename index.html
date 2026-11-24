@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KopiFast - Pre-Order & Loyalty Platform</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        espresso: {
+                            50: '#FAF6F0',
+                            100: '#F4ECE1',
+                            200: '#E6D7C3',
+                            300: '#D4BC9F',
+                            500: '#A37951',
+                            700: '#5C3E29',
+                            800: '#3D2517',
+                            900: '#2C1A12',
+                            950: '#1A0F0A',
+                        },
+                        caramel: {
+                            DEFAULT: '#F59E0B',
+                            light: '#FBBF24',
+                            dark: '#D97706'
+                        },
+                        cream: '#FAF6F0',
+                        sage: {
+                            DEFAULT: '#3D6B52',
+                            light: '#EBF2EE',
+                            dark: '#244533'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #FAF6F0; }
+        ::-webkit-scrollbar-thumb { background: #F59E0B; border-radius: 9999px; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Animation utilities */
+        .pulse-subtle { animation: pulse-border 2.5s infinite; }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(245, 158, 11, 0.3); }
+            50% { border-color: rgba(245, 158, 11, 1); }
+        }
+    </style>
+</head>
+<body class="bg-espresso-50 text-espresso-900 font-sans min-h-screen flex flex-col justify-between selection:bg-caramel selection:text-espresso-950">
+
+    <!-- NAVIGATION BAR -->
+    <header class="sticky top-0 z-40 bg-espresso-950 text-cream border-b border-espresso-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                
+                <!-- Brand Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer group" onclick="switchTab('app')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-mug-hot text-espresso-950 text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-serif font-bold text-xl tracking-wide text-cream">KopiFast<span class="text-amber-400">.</span></span>
+                        <span class="block text-[9px] text-amber-400 uppercase tracking-widest -mt-1 font-bold">Fast-Track & Loyalty</span>
+                    </div>
+                </div>
+
+                <!-- Main Navigation Tabs Switcher -->
+                <nav class="flex items-center space-x-1 sm:space-x-2 bg-espresso-900 p-1 rounded-xl border border-espresso-800">
+                    <button id="nav-app-btn" onclick="switchTab('app')" class="flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all bg-amber-400 text-espresso-950 shadow">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                        <span>Aplikasi Pre-Order</span>
+                    </button>
+                    <button id="nav-prd-btn" onclick="switchTab('prd')" class="flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all text-cream/80 hover:text-cream hover:bg-espresso-800">
+                        <i class="fa-solid fa-file-contract"></i>
+                        <span>Dokumen PRD</span>
+                    </button>
+                </nav>
+
+                <!-- Right Header Actions (Quick Tier Badge & Reset State) -->
+                <div class="hidden md:flex items-center space-x-4 border-l border-espresso-800 pl-4">
+                    <div class="text-right">
+                        <span class="block text-[10px] text-cream/70 uppercase font-semibold">Poin Cashback</span>
+                        <span id="quick-points" class="font-bold text-amber-300 text-sm">0 Pts</span>
+                    </div>
+                    <div id="quick-tier-badge" class="px-2.5 py-1 rounded-full text-xs font-black bg-amber-400 text-espresso-950 border border-amber-300 shadow-sm">
+                        Bronze Member
+                    </div>
+                    <button onclick="confirmResetData()" class="text-cream/50 hover:text-red-400 text-xs p-1 transition" title="Reset Demo Data">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow">
+        
+        <!-- ========================================== -->
+        <!-- TAB 1: INTERACTIVE PRE-ORDER & LOYALTY APP -->
+        <!-- ========================================== -->
+        <div id="tab-app" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            
+            <!-- LOYALTY STATUS HEADER BANNER -->
+            <section class="bg-gradient-to-r from-espresso-950 via-espresso-900 to-espresso-950 rounded-3xl p-6 sm:p-8 text-cream shadow-xl relative overflow-hidden border border-espresso-800">
+                <div class="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
+                    <i class="fa-solid fa-crown text-[220px] text-amber-400"></i>
+                </div>
+                
+                <div class="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                    
+                    <!-- Profile & Tier Badge (5 cols) -->
+                    <div class="md:col-span-4 flex items-center space-x-4">
+                        <div class="relative">
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 p-0.5 shadow-lg">
+                                <div class="w-full h-full bg-espresso-900 rounded-[14px] flex items-center justify-center">
+                                    <i id="user-avatar-icon" class="fa-solid fa-user-ninja text-amber-400 text-2xl"></i>
+                                </div>
+                            </div>
+                            <span id="tier-tag-pill" class="absolute -bottom-2 -right-1 px-2 py-0.5 text-[9px] font-black uppercase rounded-md bg-amber-400 text-espresso-950 shadow">
+                                BRONZE
+                            </span>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h2 id="user-name-display" class="font-serif text-xl sm:text-2xl font-bold text-cream">Alex Kopi</h2>
+                                <button onclick="editUserName()" class="text-cream/50 hover:text-amber-400 text-xs transition-colors" title="Ubah Nama Pengguna">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                            </div>
+                            <p class="text-xs text-cream/80 mt-0.5 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+                                Instan Member <span class="text-cream/60">(Tanpa Login)</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar to Next Tier (5 cols) -->
+                    <div class="md:col-span-5 bg-espresso-900/90 p-4 rounded-2xl border border-espresso-800 backdrop-blur-sm space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-cream/90 font-semibold flex items-center gap-1.5">
+                                <i class="fa-solid fa-chart-line text-amber-400"></i> Progres Loyalty Member
+                            </span>
+                            <span id="tier-progress-text" class="text-amber-300 font-bold">0 / 500 Pts ke Silver</span>
+                        </div>
+                        <div class="w-full bg-espresso-950 rounded-full h-3 p-0.5 overflow-hidden border border-espresso-800">
+                            <div id="tier-progress-bar" class="bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 h-full rounded-full transition-all duration-500" style="width: 15%"></div>
+                        </div>
+                        <div class="flex justify-between items-center text-[10px] text-cream/70 font-mono">
+                            <span>Bronze (0 Pts • 1x)</span>
+                            <span>Silver (500 Pts • 1.25x)</span>
+                            <span>Gold (1.500 Pts • 1.5x)</span>
+                        </div>
+                    </div>
+
+                    <!-- Poin Balance & Birthday Claim Button (3 cols) -->
+                    <div class="md:col-span-3 flex flex-col sm:flex-row md:flex-col justify-center items-stretch sm:items-center md:items-end gap-3">
+                        <div class="bg-espresso-900/90 px-4 py-2 rounded-2xl border border-amber-400/40 flex items-center justify-between sm:justify-start space-x-3 w-full sm:w-auto">
+                            <div class="w-8 h-8 rounded-xl bg-amber-400/20 flex items-center justify-center text-amber-300">
+                                <i class="fa-solid fa-coins text-sm"></i>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-cream/70 block uppercase font-bold tracking-wider">Saldo Cashback</span>
+                                <span id="user-points" class="text-lg font-bold text-amber-300">0 Pts</span>
+                            </div>
+                        </div>
+
+                        <button id="birthday-reward-btn" onclick="claimBirthdayReward()" class="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg hover:brightness-110 transition-all">
+                            <i class="fa-solid fa-gift text-sm animate-bounce"></i>
+                            <span>Klaim Reward Ultah!</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ACTIVE ORDER QUICK TRACKER NOTIFICATION STRIP (IF ACTIVE ORDER) -->
+            <div id="active-order-banner" class="hidden bg-gradient-to-r from-amber-500/20 via-espresso-900 to-amber-500/20 border-2 border-amber-400 rounded-2xl p-4 text-cream flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg animate-fade-in">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400 text-espresso-950 font-black flex items-center justify-center text-sm shadow">
+                        <i class="fa-solid fa-bell animate-bounce"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-amber-300 uppercase font-extrabold tracking-wider block">Pesanan Dalam Proses Fast-Track</span>
+                        <h4 class="text-sm font-bold text-cream">Antrean <span id="banner-queue-no" class="font-mono text-amber-300">#FT-402</span> — Status: <span id="banner-status-text" class="text-amber-300">Sedang Diracik Barista</span></h4>
+                    </div>
+                </div>
+                <button onclick="scrollToTracker()" class="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-espresso-950 font-extrabold text-xs rounded-xl shadow transition whitespace-nowrap">
+                    Lihat Pass Pickup <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+
+            <!-- MAIN WORKSPACE GRID -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- LEFT & CENTER COLUMN: Quests + Menu Catalog (7 Cols Desktop) -->
+                <div class="lg:col-span-7 xl:col-span-8 space-y-6">
+
+                    <!-- DAILY QUESTS & GAMIFICATION CHALLENGES -->
+                    <div class="bg-white rounded-3xl p-5 shadow-sm border border-espresso-100">
+                        <div class="flex items-center justify-between mb-3 border-b border-espresso-100 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold">
+                                    <i class="fa-solid fa-trophy"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-serif font-bold text-espresso-900 text-base">Misi Harian & Challenge Loyalty</h3>
+                                    <p class="text-[11px] text-espresso-600">Selesaikan misi untuk mendapatkan bonus poin cashback instan!</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] bg-sage-light text-sage-dark font-extrabold px-2.5 py-1 rounded-full">Reset Harian</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="quest-list">
+                            <!-- Quests render dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- CATALOG FILTER & MENU LIST -->
+                    <div class="space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-espresso-100">
+                            <div>
+                                <h3 class="font-serif text-xl font-bold text-espresso-900">Katalog Racikan Kopi & Snack</h3>
+                                <p class="text-xs text-espresso-600">Pesan lebih awal, racikan siap pas kamu tiba!</p>
+                            </div>
+                            
+                            <!-- Category Filter Buttons -->
+                            <div class="flex space-x-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar" id="category-filters">
+                                <button onclick="filterCategory('all', this)" class="cat-btn active border px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-espresso-950 text-amber-300 border-espresso-950 shadow-sm">
+                                    Semua Menu
+                                </button>
+                                <button onclick="filterCategory('kopi-susu', this)" class="cat-btn border px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-espresso-800 border-espresso-200 hover:bg-espresso-50">
+                                    ☕ Kopi Susu
+                                </button>
+                                <button onclick="filterCategory('espresso', this)" class="cat-btn border px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-espresso-800 border-espresso-200 hover:bg-espresso-50">
+                                    🔥 Espresso Base
+                                </button>
+                                <button onclick="filterCategory('non-coffee', this)" class="cat-btn border px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-espresso-800 border-espresso-200 hover:bg-espresso-50">
+                                    🍵 Non-Kopi
+                                </button>
+                                <button onclick="filterCategory('pastry', this)" class="cat-btn border px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-espresso-800 border-espresso-200 hover:bg-espresso-50">
+                                    🥐 Pastry & Bakery
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Menu Cards Grid -->
+                        <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                            <!-- Menu Cards Rendered via JS -->
+                        </div>
+                    </div>
+
+                    <!-- ORDER HISTORY RECENT (EXPANDABLE) -->
+                    <div class="bg-white rounded-3xl p-5 shadow-sm border border-espresso-100 space-y-3">
+                        <div class="flex justify-between items-center cursor-pointer" onclick="toggleOrderHistory()">
+                            <h4 class="font-serif font-bold text-espresso-900 text-base flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-600"></i>
+                                <span>Riwayat Pesanan Fast-Track</span>
+                            </h4>
+                            <span class="text-xs text-amber-700 font-bold flex items-center gap-1">
+                                <span id="history-count">0 Pesanan</span>
+                                <i id="history-chevron" class="fa-solid fa-chevron-down transition-transform"></i>
+                            </span>
+                        </div>
+                        <div id="history-list" class="hidden space-y-2 pt-2 border-t border-espresso-100">
+                            <!-- Order history item rendered via JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT COLUMN: Order Cart, Pickup Slot & Tracker Pass (5 Cols Desktop) -->
+                <div class="lg:col-span-5 xl:col-span-4 space-y-6">
+
+                    <!-- LIVE ORDER TRACKER PASS PANEL (DARK CARD HIGH CONTRAST FIX) -->
+                    <div id="live-tracker-panel" class="hidden bg-espresso-950 text-cream rounded-3xl p-6 shadow-2xl border-2 border-amber-400 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-amber-400 text-espresso-950 text-[9px] font-black px-3.5 py-1 rounded-bl-xl uppercase tracking-widest shadow">
+                            Fast-Track Pickup Pass
+                        </div>
+
+                        <div class="flex items-center space-x-3 mb-4 border-b border-espresso-800 pb-4">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-400/20 flex items-center justify-center text-amber-300 border border-amber-400/40 shadow">
+                                <i class="fa-solid fa-qrcode text-2xl"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-cream/80 uppercase font-bold tracking-wider">Nomor Antrean Prioritas</span>
+                                <h4 id="pass-queue-no" class="font-mono text-2xl font-black text-amber-300">#FT-402</h4>
+                            </div>
+                        </div>
+
+                        <!-- Stepper Status Visual -->
+                        <div class="bg-espresso-900/90 p-4 rounded-2xl mb-4 border border-espresso-800">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs font-bold text-cream">Status Racikan:</span>
+                                <span id="pass-status-badge" class="text-xs font-black text-espresso-950 bg-amber-400 px-3 py-1 rounded-full shadow">
+                                    Diterima Barista
+                                </span>
+                            </div>
+
+                            <div class="relative flex items-center justify-between text-xs font-medium my-4 px-2">
+                                <div class="absolute left-4 right-4 top-1/2 transform -translate-y-1/2 h-1.5 bg-espresso-800 -z-0"></div>
+                                <div id="pass-progress-line" class="absolute left-4 top-1/2 transform -translate-y-1/2 h-1.5 bg-amber-400 transition-all duration-500 -z-0" style="width: 0%"></div>
+
+                                <div id="step-node-1" class="step-node relative z-10 w-8 h-8 rounded-full bg-amber-400 text-espresso-950 font-black flex items-center justify-center text-xs shadow-md border-2 border-amber-300">1</div>
+                                <div id="step-node-2" class="step-node relative z-10 w-8 h-8 rounded-full bg-espresso-800 text-amber-100 font-bold flex items-center justify-center text-xs border border-espresso-600">2</div>
+                                <div id="step-node-3" class="step-node relative z-10 w-8 h-8 rounded-full bg-espresso-800 text-amber-100 font-bold flex items-center justify-center text-xs border border-espresso-600">3</div>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-cream font-bold px-1">
+                                <span>Diterima</span>
+                                <span class="text-center">Sedang Diracik</span>
+                                <span>Siap Ambil</span>
+                            </div>
+                        </div>
+
+                        <!-- Pickup Pass SVG QR Code & Outlet Details -->
+                        <div class="bg-white text-espresso-950 p-4 rounded-2xl flex items-center space-x-4 mb-4 shadow">
+                            <div class="w-20 h-20 bg-espresso-50 p-1.5 rounded-xl border border-espresso-200 flex-shrink-0">
+                                <!-- SVG QR Code Illustration -->
+                                <svg viewBox="0 0 100 100" class="w-full h-full text-espresso-950 fill-current">
+                                    <path d="M0,0 h35 v35 h-35 z M5,5 v25 h25 v-25 z M10,10 h15 v15 h-15 z"/>
+                                    <path d="M65,0 h35 v35 h-35 z M70,5 v25 h25 v-25 z M75,10 h15 v15 h-15 z"/>
+                                    <path d="M0,65 h35 v35 h-35 z M5,70 v25 h25 v-25 z M10,75 h15 v15 h-15 z"/>
+                                    <path d="M40,10 h15 v15 h-15 z M45,40 h20 v20 h-20 z M70,65 h15 v15 h-15 z M85,85 h15 v15 h-15 z"/>
+                                </svg>
+                            </div>
+                            <div class="text-xs space-y-1">
+                                <span class="text-[9px] bg-espresso-900 text-amber-300 font-extrabold px-2 py-0.5 rounded">Tunjukkan di Rak Fast-Track</span>
+                                <h5 id="pass-branch" class="font-bold text-espresso-950 text-sm">Cabang Sudirman Central</h5>
+                                <p class="text-[11px] text-espresso-700">Estimasi Pickup: <span id="pass-time" class="font-extrabold text-amber-700">Ambil Sekarang (~10 mnt)</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Barista Simulation Controls (HIGH CONTRAST BUTTON FIX) -->
+                        <div class="border-t border-espresso-800 pt-3 space-y-2">
+                            <span class="text-[11px] text-amber-300 font-bold uppercase tracking-wider block"><i class="fa-solid fa-sliders"></i> Simulasi Aksi Barista (Demo):</span>
+                            <div class="flex gap-2">
+                                <button onclick="advanceOrderStatus()" class="flex-1 bg-amber-400 hover:bg-amber-300 text-espresso-950 text-xs font-extrabold py-2.5 px-4 rounded-xl transition shadow-md flex items-center justify-center space-x-1.5 border border-amber-300">
+                                    <span>Maju Status Barista</span>
+                                    <i class="fa-solid fa-forward text-[10px]"></i>
+                                </button>
+                                <button id="complete-order-btn" onclick="completeActiveOrder()" class="hidden flex-1 bg-emerald-400 hover:bg-emerald-300 text-espresso-950 text-xs font-extrabold py-2.5 px-4 rounded-xl transition shadow-md border border-emerald-300">
+                                    <i class="fa-solid fa-circle-check"></i> Pesanan Diambil
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PRE-ORDER CART & CHECKOUT PANEL -->
+                    <div class="bg-white rounded-3xl p-6 shadow-md border border-espresso-100 space-y-5">
+                        <div class="flex items-center justify-between border-b border-espresso-100 pb-4">
+                            <h3 class="font-serif font-bold text-xl text-espresso-900 flex items-center gap-2">
+                                <i class="fa-solid fa-basket-shopping text-amber-600"></i>
+                                <span>Keranjang Pre-Order</span>
+                            </h3>
+                            <span id="cart-item-count" class="bg-espresso-100 text-espresso-900 text-xs font-bold px-2.5 py-1 rounded-full">0 Item</span>
+                        </div>
+
+                        <!-- Store Outlet Selector -->
+                        <div>
+                            <label class="block text-xs font-bold text-espresso-800 mb-1">Pilih Outlet Pengambilan:</label>
+                            <select id="branch-select" onchange="state.selectedOutlet = this.value; saveState();" class="w-full bg-espresso-50 border border-espresso-200 text-espresso-900 text-xs rounded-xl p-2.5 font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                                <option value="Cabang Sudirman Central">☕ Cabang Sudirman Central (Rak Fast-Track A)</option>
+                                <option value="Cabang Senopati Artisan">☕ Cabang Senopati Artisan (Rak Fast-Track B)</option>
+                                <option value="Cabang Dago Creative Hub">☕ Cabang Dago Creative Hub (Rak Fast-Track C)</option>
+                            </select>
+                        </div>
+
+                        <!-- Pickup Time Slot Selector -->
+                        <div>
+                            <label class="block text-xs font-bold text-espresso-800 mb-1">Slot Waktu Pickup (Estimasi Siap):</label>
+                            <div class="grid grid-cols-3 gap-2" id="pickup-slots">
+                                <button onclick="selectPickupSlot(this, 'Ambil Sekarang (~10 mnt)')" class="slot-btn active border-2 border-amber-500 bg-amber-50 text-espresso-900 text-xs font-bold py-2 rounded-xl text-center shadow-sm">
+                                    10 Mnt
+                                    <span class="block text-[9px] font-normal text-espresso-600">Ambil Cepat</span>
+                                </button>
+                                <button onclick="selectPickupSlot(this, '15 Menit Lagi')" class="slot-btn border border-espresso-200 text-espresso-700 text-xs font-bold py-2 rounded-xl text-center hover:bg-espresso-50">
+                                    15 Mnt
+                                    <span class="block text-[9px] font-normal text-espresso-500">Normal</span>
+                                </button>
+                                <button onclick="selectPickupSlot(this, '30 Menit Lagi')" class="slot-btn border border-espresso-200 text-espresso-700 text-xs font-bold py-2 rounded-xl text-center hover:bg-espresso-50">
+                                    30 Mnt
+                                    <span class="block text-[9px] font-normal text-espresso-500">Jadwal Nanti</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Cart Items List Container -->
+                        <div id="cart-items" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                            <div class="text-center py-8 text-espresso-400 text-xs">
+                                <i class="fa-solid fa-mug-saucer text-4xl mb-2 text-espresso-200 block"></i>
+                                Keranjang pre-order masih kosong. Pilihlah racikan favoritmu!
+                            </div>
+                        </div>
+
+                        <!-- Loyalty Cashback Points Redemption Box -->
+                        <div id="points-redemption-box" class="bg-espresso-50 p-4 rounded-2xl border border-espresso-200 space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-espresso-900 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-coins text-amber-600"></i> Tukar Poin Cashback
+                                </span>
+                                <span id="redeem-discount-label" class="text-emerald-700 font-bold">- Rp 0</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <input type="range" id="points-slider" min="0" max="0" step="10" value="0" oninput="updatePointsRedemption()" class="w-full accent-amber-500 bg-espresso-200 h-2 rounded-lg cursor-pointer">
+                                <span id="points-slider-val" class="text-xs font-mono font-bold text-espresso-900 w-16 text-right">0 Pts</span>
+                            </div>
+                            <p class="text-[10px] text-espresso-500">Nilai Tukar: 1 Poin = Potongan Rp 100</p>
+                        </div>
+
+                        <!-- Cost Summary Breakdown -->
+                        <div class="border-t border-espresso-100 pt-3 space-y-2 text-xs">
+                            <div class="flex justify-between text-espresso-600">
+                                <span>Subtotal Pesanan</span>
+                                <span id="summary-subtotal" class="font-semibold text-espresso-900">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between text-espresso-600">
+                                <span>Diskon Loyalty Member</span>
+                                <span id="summary-tier-discount" class="font-semibold text-emerald-600">- Rp 0</span>
+                            </div>
+                            <div class="flex justify-between text-espresso-600">
+                                <span>Potongan Poin Cashback</span>
+                                <span id="summary-points-discount" class="font-semibold text-emerald-600">- Rp 0</span>
+                            </div>
+                            <div class="flex justify-between text-base font-bold text-espresso-900 pt-2 border-t border-dashed border-espresso-200">
+                                <span>Total Bayar</span>
+                                <span id="summary-total" class="text-amber-700 font-mono text-lg">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-[11px] text-amber-900 bg-amber-50 p-2.5 rounded-xl border border-amber-200 font-medium">
+                                <span><i class="fa-solid fa-star text-amber-500"></i> Estimasi Bonus Poin:</span>
+                                <span id="summary-points-earned" class="font-bold text-amber-700">+0 Pts</span>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method Simulation -->
+                        <div>
+                            <label class="block text-xs font-bold text-espresso-800 mb-1.5">Metode Pembayaran Instan:</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="payment-methods-grid">
+                                <label onclick="selectPaymentMethod('qris', this)" class="pay-option active border-2 border-amber-500 bg-amber-50/80 rounded-xl p-2.5 flex flex-col items-center justify-center cursor-pointer transition">
+                                    <input type="radio" name="pay-method" value="qris" checked class="hidden">
+                                    <i class="fa-solid fa-qrcode text-lg text-espresso-950"></i>
+                                    <span class="text-[10px] font-bold mt-1 text-espresso-950">QRIS Instan</span>
+                                </label>
+                                <label onclick="selectPaymentMethod('gopay', this)" class="pay-option border border-espresso-200 rounded-xl p-2.5 flex flex-col items-center justify-center cursor-pointer hover:border-amber-500 transition">
+                                    <input type="radio" name="pay-method" value="gopay" class="hidden">
+                                    <i class="fa-solid fa-wallet text-lg text-sky-600"></i>
+                                    <span class="text-[10px] font-bold mt-1 text-espresso-900">GoPay</span>
+                                </label>
+                                <label onclick="selectPaymentMethod('ovo', this)" class="pay-option border border-espresso-200 rounded-xl p-2.5 flex flex-col items-center justify-center cursor-pointer hover:border-amber-500 transition">
+                                    <input type="radio" name="pay-method" value="ovo" class="hidden">
+                                    <i class="fa-solid fa-mobile-retro text-lg text-purple-600"></i>
+                                    <span class="text-[10px] font-bold mt-1 text-espresso-900">OVO</span>
+                                </label>
+                                <label onclick="selectPaymentMethod('dana', this)" class="pay-option border border-espresso-200 rounded-xl p-2.5 flex flex-col items-center justify-center cursor-pointer hover:border-amber-500 transition">
+                                    <input type="radio" name="pay-method" value="dana" class="hidden">
+                                    <i class="fa-solid fa-shield-halved text-lg text-blue-600"></i>
+                                    <span class="text-[10px] font-bold mt-1 text-espresso-900">DANA</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- SUBMIT CHECKOUT BUTTON (HIGH CONTRAST FIX) -->
+                        <button id="checkout-btn" onclick="openPaymentConfirmationModal()" disabled class="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-espresso-200 disabled:text-espresso-400 text-espresso-950 font-black py-4 rounded-2xl shadow-xl transition-all flex items-center justify-center space-x-2 border border-amber-400">
+                            <i class="fa-solid fa-bolt text-base"></i>
+                            <span class="text-sm tracking-wide">Bayar & Dapatkan Pass Fast-Track</span>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: PRODUCT REQUIREMENT DOCUMENT (PRD) -->
+        <!-- ========================================== -->
+        <div id="tab-prd" class="hidden max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            
+            <!-- PRD HEADER BANNER -->
+            <div class="bg-espresso-950 text-cream p-8 rounded-3xl shadow-xl border border-espresso-800">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-espresso-800 pb-6 mb-6">
+                    <div>
+                        <span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-amber-400 text-espresso-950">
+                            Product Requirement Document (PRD)
+                        </span>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-cream mt-3">Platform Pre-Order Kedai Kopi Terintegrasi Sistem Loyalty</h1>
+                        <p class="text-xs sm:text-sm text-cream/80 mt-1">Versi Dokumen: 1.0 (MVP Release) | Author: Lead Product Manager</p>
+                    </div>
+                    <button onclick="window.print()" class="px-4 py-2 bg-espresso-900 hover:bg-espresso-800 text-cream text-xs font-bold rounded-xl border border-espresso-700 transition flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Cetak / Save PDF</span>
+                    </button>
+                </div>
+
+                <!-- PRD Key Highlight Badges -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div class="bg-espresso-900/80 p-4 rounded-2xl border border-espresso-800">
+                        <span class="text-amber-400 font-bold uppercase text-[10px]">Tujuan Produk Utama</span>
+                        <p class="mt-1 text-cream/90">Eliminasi 100% antrean kasir jam sibuk & tingkatkan angka repeat order melalui gamifikasi loyalty.</p>
+                    </div>
+                    <div class="bg-espresso-900/80 p-4 rounded-2xl border border-espresso-800">
+                        <span class="text-amber-400 font-bold uppercase text-[10px]">Strategi Onboarding</span>
+                        <p class="mt-1 text-cream/90">Frictionless Instant Guest Access tanpa form register/login rumit pada tahap pemesanan awal.</p>
+                    </div>
+                    <div class="bg-espresso-900/80 p-4 rounded-2xl border border-espresso-800">
+                        <span class="text-amber-400 font-bold uppercase text-[10px]">Model Retensi</span>
+                        <p class="mt-1 text-cream/90">Tiering otomatis (Bronze, Silver, Gold), Poin Cashback instan, Birthday Voucher, & Daily Quests.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRD CONTENT WITH STICKY NAV -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- STICKY TABLE OF CONTENTS (3 Cols) -->
+                <div class="lg:col-span-3 sticky top-24 bg-white p-4 rounded-3xl border border-espresso-100 shadow-sm hidden lg:block text-xs space-y-3">
+                    <h4 class="font-bold text-espresso-900 border-b border-espresso-100 pb-2">Daftar Isi PRD:</h4>
+                    <nav class="space-y-1.5 font-medium text-espresso-700">
+                        <a href="#prd-sec-1" class="block hover:text-amber-600 transition">1. Problem & Goals</a>
+                        <a href="#prd-sec-2" class="block hover:text-amber-600 transition">2. User Flow End-to-End</a>
+                        <a href="#prd-sec-3" class="block hover:text-amber-600 transition">3. Gamifikasi & Loyalty Tier</a>
+                        <a href="#prd-sec-4" class="block hover:text-amber-600 transition">4. Daftar Fitur MVP (MoSCoW)</a>
+                        <a href="#prd-sec-5" class="block hover:text-amber-600 transition">5. Metrik Keberhasilan (KPI)</a>
+                    </nav>
+                </div>
+
+                <!-- PRD MAIN BODY (9 Cols) -->
+                <div class="lg:col-span-9 bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-espresso-100 text-espresso-900 space-y-10 leading-relaxed">
+
+                    <!-- SECTION 1: MASALAH & SOLUSI -->
+                    <section id="prd-sec-1" class="space-y-4">
+                        <div class="flex items-center space-x-3 border-b border-espresso-100 pb-3">
+                            <span class="w-8 h-8 rounded-xl bg-espresso-950 text-amber-400 flex items-center justify-center font-bold text-sm">1</span>
+                            <h2 class="font-serif text-2xl font-bold text-espresso-900">Masalah Pelanggan & Solusi Produk</h2>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                            <div class="bg-red-50/80 p-5 rounded-2xl border border-red-100 space-y-2">
+                                <h3 class="font-bold text-red-900 text-base flex items-center gap-2">
+                                    <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Problem Statement
+                                </h3>
+                                <ul class="space-y-2 text-red-950 text-xs sm:text-sm list-disc pl-4 font-medium">
+                                    <li><strong>Bottleneck Antrean Kasir:</strong> Pelanggan membuang 15–20 menit pada jam sibuk pagi (07.30–10.00) dan siang (12.00–14.00) hanya untuk memesan & menunggu racikan.</li>
+                                    <li><strong>Rendahnya Retensi Pelanggan:</strong> Sistem loyalitas kartu stempel fisik mudah hilang dan tidak memberikan insentif cashback instan secara real-time.</li>
+                                    <li><strong>Login Friction High Drop-Off:</strong> Pengguna enggan membuat akun dengan verifikasi OTP yang panjang saat hanya ingin membeli segelas kopi secara cepat.</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-emerald-50/80 p-5 rounded-2xl border border-emerald-100 space-y-2">
+                                <h3 class="font-bold text-emerald-900 text-base flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-emerald-600"></i> Solusi Produk (Value Proposition)
+                                </h3>
+                                <ul class="space-y-2 text-emerald-950 text-xs sm:text-sm list-disc pl-4 font-medium">
+                                    <li><strong>Pre-Order & Fast-Track Pickup Pass:</strong> Pelanggan memesan & membayar via web sebelum sampai kedai, kemudian langsung mengambil pesanan di rak khusus tanpa melalui kasir.</li>
+                                    <li><strong>Pembayaran Multi E-Wallet Instan:</strong> Integrasi langsung dengan QRIS, GoPay, OVO, dan DANA untuk penyelesaian transaksi tanpa hambatan.</li>
+                                    <li><strong>Sistem Loyalty Gamified:</strong> Sistem tier member (Bronze, Silver, Gold), perolehan poin cashback instan, serta Misi Harian interaktif.</li>
+                                    <li><strong>Frictionless Instant Guest Session:</strong> Profil pelanggan langsung aktif secara otomatis tanpa mewajibkan halaman login formal di awal.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- SECTION 2: USER FLOW -->
+                    <section id="prd-sec-2" class="space-y-4">
+                        <div class="flex items-center space-x-3 border-b border-espresso-100 pb-3">
+                            <span class="w-8 h-8 rounded-xl bg-espresso-950 text-amber-400 flex items-center justify-center font-bold text-sm">2</span>
+                            <h2 class="font-serif text-2xl font-bold text-espresso-900">User Flow End-to-End</h2>
+                        </div>
+
+                        <p class="text-xs sm:text-sm text-espresso-700">Berikut adalah alur perjalanan pengguna dari membuka aplikasi hingga mengambil kopi di outlet:</p>
+
+                        <!-- Visual Step Flow Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
+                            <div class="bg-espresso-50 p-4 rounded-2xl border border-espresso-200 text-center space-y-1">
+                                <span class="w-6 h-6 rounded-full bg-amber-400 text-espresso-950 text-xs font-black inline-flex items-center justify-center">1</span>
+                                <h4 class="font-bold text-xs text-espresso-900">Akses Web Instan</h4>
+                                <p class="text-[11px] text-espresso-600">Masuk tanpa login, profil member & saldo poin langsung aktif.</p>
+                            </div>
+                            <div class="bg-espresso-50 p-4 rounded-2xl border border-espresso-200 text-center space-y-1">
+                                <span class="w-6 h-6 rounded-full bg-amber-400 text-espresso-950 text-xs font-black inline-flex items-center justify-center">2</span>
+                                <h4 class="font-bold text-xs text-espresso-900">Kustom Kopi</h4>
+                                <p class="text-[11px] text-espresso-600">Pilih menu, tentukan level es/gula & tentukan slot waktu pickup.</p>
+                            </div>
+                            <div class="bg-espresso-50 p-4 rounded-2xl border border-espresso-200 text-center space-y-1">
+                                <span class="w-6 h-6 rounded-full bg-amber-400 text-espresso-950 text-xs font-black inline-flex items-center justify-center">3</span>
+                                <h4 class="font-bold text-xs text-espresso-900">Bayar (GoPay/OVO/DANA)</h4>
+                                <p class="text-[11px] text-espresso-600">Tukar poin cashback & selesaikan pembayaran via E-Wallet atau QRIS.</p>
+                            </div>
+                            <div class="bg-espresso-50 p-4 rounded-2xl border border-espresso-200 text-center space-y-1">
+                                <span class="w-6 h-6 rounded-full bg-amber-400 text-espresso-950 text-xs font-black inline-flex items-center justify-center">4</span>
+                                <h4 class="font-bold text-xs text-espresso-900">Live Tracker Pass</h4>
+                                <p class="text-[11px] text-espresso-600">Pantau status racikan barista & dapatkan Kode QR pickup.</p>
+                            </div>
+                            <div class="bg-espresso-50 p-4 rounded-2xl border border-espresso-200 text-center space-y-1">
+                                <span class="w-6 h-6 rounded-full bg-amber-400 text-espresso-950 text-xs font-black inline-flex items-center justify-center">5</span>
+                                <h4 class="font-bold text-xs text-espresso-900">Fast-Track Grab</h4>
+                                <p class="text-[11px] text-espresso-600">Tunjukkan Pass di rak khusus kedai & ambil kopi tanpa antre.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- SECTION 3: MEKANISME GAMIFIKASI & TIERING -->
+                    <section id="prd-sec-3" class="space-y-4">
+                        <div class="flex items-center space-x-3 border-b border-espresso-100 pb-3">
+                            <span class="w-8 h-8 rounded-xl bg-espresso-950 text-amber-400 flex items-center justify-center font-bold text-sm">3</span>
+                            <h2 class="font-serif text-2xl font-bold text-espresso-900">Gamifikasi & Aturan Loyalty Tier</h2>
+                        </div>
+
+                        <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-xs text-amber-950 space-y-1">
+                            <h4 class="font-bold text-sm text-amber-900"><i class="fa-solid fa-coins text-amber-600"></i> Formulasi Perolehan & Penukaran Poin:</h4>
+                            <p>• Pelanggan mendapat <strong>10 Poin Dasar</strong> untuk setiap transaksi kelipatan <strong>Rp 10.000</strong>.</p>
+                            <p>• Nilai Tukar Poin: <strong>1 Poin = Potongan Rp 100</strong> (Tukar langsung di slider keranjang).</p>
+                        </div>
+
+                        <!-- Tier Comparison Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-espresso-950 text-cream uppercase font-bold text-[10px]">
+                                        <th class="p-3 rounded-tl-xl">Tier Member</th>
+                                        <th class="p-3">Syarat Poin Akumulasi</th>
+                                        <th class="p-3">Multiplier Poin</th>
+                                        <th class="p-3">Perks Utama</th>
+                                        <th class="p-3 rounded-tr-xl">Birthday Reward</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-espresso-100 border-b border-espresso-100 font-medium text-espresso-900">
+                                    <tr class="hover:bg-espresso-50">
+                                        <td class="p-3 font-bold text-amber-900 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-shield text-amber-700"></i> Bronze Member
+                                        </td>
+                                        <td class="p-3 font-mono">0 – 499 Pts</td>
+                                        <td class="p-3 font-bold">1.0x (Standard)</td>
+                                        <td class="p-3">Akses Fast-Track Pre-Order & Misi Harian</td>
+                                        <td class="p-3 text-emerald-700 font-bold">Voucher Diskon 15%</td>
+                                    </tr>
+                                    <tr class="hover:bg-espresso-50">
+                                        <td class="p-3 font-bold text-slate-700 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-shield-halved text-slate-500"></i> Silver Member
+                                        </td>
+                                        <td class="p-3 font-mono">500 – 1.499 Pts</td>
+                                        <td class="p-3 font-bold text-indigo-700">1.25x Multiplier</td>
+                                        <td class="p-3">Diskon 5% Menu Signature + Prioritas Racik</td>
+                                        <td class="p-3 text-emerald-700 font-bold">Bonus +100 Poin Instan</td>
+                                    </tr>
+                                    <tr class="hover:bg-espresso-50">
+                                        <td class="p-3 font-bold text-amber-700 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-crown text-amber-500"></i> Gold Member
+                                        </td>
+                                        <td class="p-3 font-mono">1.500+ Pts</td>
+                                        <td class="p-3 font-bold text-amber-700">1.50x Multiplier</td>
+                                        <td class="p-3">Free Size Upgrade Gratis Setiap Saat</td>
+                                        <td class="p-3 text-emerald-700 font-bold">1 Kopi Gratis Bebas Pilih</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- SECTION 4: MOSCOW MVP -->
+                    <section id="prd-sec-4" class="space-y-4">
+                        <div class="flex items-center space-x-3 border-b border-espresso-100 pb-3">
+                            <span class="w-8 h-8 rounded-xl bg-espresso-950 text-amber-400 flex items-center justify-center font-bold text-sm">4</span>
+                            <h2 class="font-serif text-2xl font-bold text-espresso-900">Daftar Fitur MVP (MoSCoW Prioritization)</h2>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                            <div class="bg-espresso-50 p-4 rounded-2xl border border-espresso-200 space-y-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-red-100 text-red-800 font-extrabold uppercase text-[9px]">Must-Have (Wajib Ada Fase 1)</span>
+                                <ul class="space-y-1.5 text-espresso-900 list-disc pl-4 font-medium">
+                                    <li>Instant Guest Session (Tanpa form login terpisah).</li>
+                                    <li>Katalog Menu Interaktif & Customizer (Size, Sugar, Ice, Add-ons).</li>
+                                    <li>Pemilihan Slot Waktu Pickup (10m, 15m, 30m).</li>
+                                    <li>Integrasi Pembayaran Multi E-Wallet Instan (GoPay, OVO, DANA) & QRIS.</li>
+                                    <li>Digital Fast-Track Pass + Stepper Status Barista.</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-espresso-50 p-4 rounded-2xl border border-espresso-200 space-y-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-extrabold uppercase text-[9px]">Should-Have (Fitur Pendukung Utama)</span>
+                                <ul class="space-y-1.5 text-espresso-900 list-disc pl-4 font-medium">
+                                    <li>Slider Penukaran Poin Cashback di Keranjang.</li>
+                                    <li>Dashboard Misi Harian & Challenge Loyalis.</li>
+                                    <li>Tombol Klaim Special Birthday Reward.</li>
+                                    <li>Riwayat Pesanan Fast-Track Terakhir.</li>
+                                    <li>Persistensi Data via localStorage dengan tombol Reset Demo.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- SECTION 5: METRIK KEBERHASILAN (KPI) -->
+                    <section id="prd-sec-5" class="space-y-4">
+                        <div class="flex items-center space-x-3 border-b border-espresso-100 pb-3">
+                            <span class="w-8 h-8 rounded-xl bg-espresso-950 text-amber-400 flex items-center justify-center font-bold text-sm">5</span>
+                            <h2 class="font-serif text-2xl font-bold text-espresso-900">Metrik Keberhasilan (Key Performance Indicators)</h2>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                            <div class="bg-espresso-950 text-cream p-5 rounded-2xl space-y-1">
+                                <span class="block text-3xl font-black text-amber-400 font-mono">&lt; 15 Detik</span>
+                                <span class="text-xs text-cream/80 block font-medium">Waktu Pengambilan Kopi di Outlet</span>
+                            </div>
+                            <div class="bg-espresso-950 text-cream p-5 rounded-2xl space-y-1">
+                                <span class="block text-3xl font-black text-amber-400 font-mono">+50%</span>
+                                <span class="text-xs text-cream/80 block font-medium">Peningkatan Repeat Order Harian</span>
+                            </div>
+                            <div class="bg-espresso-950 text-cream p-5 rounded-2xl space-y-1">
+                                <span class="block text-3xl font-black text-amber-400 font-mono">0%</span>
+                                <span class="text-xs text-cream/80 block font-medium">Login Friction Drop-off Rate</span>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- CUSTOMIZATION MODAL -->
+    <div id="custom-modal" class="fixed inset-0 bg-espresso-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-espresso-200 space-y-4">
+            <div class="flex justify-between items-start border-b border-espresso-100 pb-3">
+                <div>
+                    <h3 id="modal-title" class="font-serif font-bold text-xl text-espresso-900">Kopi Susu Gula Aren</h3>
+                    <p id="modal-desc" class="text-xs text-espresso-500">Espresso ganda, susu segar & gula aren organik</p>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-espresso-100 text-espresso-600 hover:bg-espresso-200 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Size Options -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-espresso-800 uppercase tracking-wider">Ukuran Minuman:</label>
+                <div class="grid grid-cols-2 gap-2" id="size-options">
+                    <button onclick="selectOpt('size', 'Regular', 0, this)" class="opt-btn active border-2 border-amber-500 bg-amber-50 text-espresso-900 py-2 rounded-xl text-xs font-bold">
+                        Regular (350ml)
+                    </button>
+                    <button onclick="selectOpt('size', 'Large', 5000, this)" class="opt-btn border border-espresso-200 text-espresso-700 py-2 rounded-xl text-xs font-bold hover:bg-espresso-50">
+                        Large (+Rp 5.000)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sugar Level -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-espresso-800 uppercase tracking-wider">Level Gula Manis:</label>
+                <div class="grid grid-cols-3 gap-2" id="sugar-options">
+                    <button onclick="selectOpt('sugar', 'Normal Sugar', 0, this)" class="opt-btn active border-2 border-amber-500 bg-amber-50 text-espresso-900 py-2 rounded-xl text-xs font-bold">Normal</button>
+                    <button onclick="selectOpt('sugar', 'Less (50%)', 0, this)" class="opt-btn border border-espresso-200 text-espresso-700 py-2 rounded-xl text-xs font-bold hover:bg-espresso-50">Less (50%)</button>
+                    <button onclick="selectOpt('sugar', 'No Sugar (0%)', 0, this)" class="opt-btn border border-espresso-200 text-espresso-700 py-2 rounded-xl text-xs font-bold hover:bg-espresso-50">No Sugar</button>
+                </div>
+            </div>
+
+            <!-- Ice Level -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-espresso-800 uppercase tracking-wider">Level Es Batu:</label>
+                <div class="grid grid-cols-3 gap-2" id="ice-options">
+                    <button onclick="selectOpt('ice', 'Normal Ice', 0, this)" class="opt-btn active border-2 border-amber-500 bg-amber-50 text-espresso-900 py-2 rounded-xl text-xs font-bold">Normal Ice</button>
+                    <button onclick="selectOpt('ice', 'Less Ice', 0, this)" class="opt-btn border border-espresso-200 text-espresso-700 py-2 rounded-xl text-xs font-bold hover:bg-espresso-50">Less Ice</button>
+                    <button onclick="selectOpt('ice', 'Hot / No Ice', 0, this)" class="opt-btn border border-espresso-200 text-espresso-700 py-2 rounded-xl text-xs font-bold hover:bg-espresso-50">Hot / No Ice</button>
+                </div>
+            </div>
+
+            <!-- Add-ons Checkboxes -->
+            <div class="space-y-2 pt-1">
+                <label class="block text-xs font-bold text-espresso-800 uppercase tracking-wider">Tambahan (Add-ons):</label>
+                <div class="flex items-center justify-between p-2.5 bg-espresso-50 rounded-xl border border-espresso-200 text-xs">
+                    <span class="font-semibold text-espresso-900">+ Extra Shot Espresso (+Rp 6.000)</span>
+                    <input type="checkbox" id="check-shot" onchange="toggleAddon('extraShot', 6000, this)" class="w-4 h-4 accent-amber-500 cursor-pointer">
+                </div>
+                <div class="flex items-center justify-between p-2.5 bg-espresso-50 rounded-xl border border-espresso-200 text-xs">
+                    <span class="font-semibold text-espresso-900">+ Ganti Oat Milk (+Rp 8.000)</span>
+                    <input type="checkbox" id="check-oat" onchange="toggleAddon('oatMilk', 8000, this)" class="w-4 h-4 accent-amber-500 cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Barista Notes Input -->
+            <div>
+                <label class="block text-[11px] font-bold text-espresso-700 mb-1">Catatan Khusus Barista:</label>
+                <input type="text" id="barista-notes" placeholder="Misal: Pisahkan es batu / extra sedotan..." class="w-full bg-espresso-50 border border-espresso-200 rounded-xl p-2 text-xs text-espresso-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+
+            <!-- Modal Action Footer -->
+            <div class="pt-3 border-t border-espresso-100 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-espresso-500 block">Total Harga:</span>
+                    <span id="modal-total-price" class="font-serif font-bold text-xl text-espresso-900">Rp 24.000</span>
+                </div>
+                <button onclick="confirmAddToCart()" class="bg-amber-400 hover:bg-amber-300 text-espresso-950 font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md transition">
+                    + Tambahkan Ke Keranjang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- E-WALLET PAYMENT CONFIRMATION MODAL -->
+    <div id="pay-modal" class="fixed inset-0 bg-espresso-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-espresso-200 space-y-4 text-center">
+            <div id="pay-modal-header" class="space-y-2">
+                <div id="pay-modal-icon" class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg">
+                    <!-- Icon inserted dynamically -->
+                </div>
+                <h3 id="pay-modal-title" class="font-serif font-bold text-xl text-espresso-900">Konfirmasi Pembayaran</h3>
+                <p id="pay-modal-subtitle" class="text-xs text-espresso-500">Otorisasi transaksi cepat pre-order</p>
+            </div>
+
+            <!-- Total Amount Card -->
+            <div class="bg-espresso-50 p-3.5 rounded-2xl border border-espresso-200 text-left space-y-1">
+                <span class="text-[10px] text-espresso-500 uppercase font-extrabold tracking-wider block">Tagihan Pembayaran:</span>
+                <div class="flex justify-between items-center">
+                    <span id="pay-modal-amount" class="font-mono text-2xl font-black text-amber-700">Rp 0</span>
+                    <span id="pay-modal-method-tag" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase">GoPay</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Input / QR Code View -->
+            <div id="pay-modal-body" class="space-y-3 text-left">
+                <!-- Phone input for GoPay / OVO / DANA or QR Code image -->
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button onclick="closePayModal()" class="w-1/3 bg-espresso-100 hover:bg-espresso-200 text-espresso-800 text-xs font-bold py-3 rounded-xl transition">
+                    Batal
+                </button>
+                <button id="confirm-pay-btn" onclick="processCheckout()" class="w-2/3 bg-amber-400 hover:bg-amber-300 text-espresso-950 text-xs font-extrabold py-3 rounded-xl shadow transition flex items-center justify-center gap-1.5 border border-amber-300">
+                    <span>Konfirmasi & Bayar</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-espresso-950 text-cream/70 py-6 border-t border-espresso-900 text-xs mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p>© 2026 KopiFast Platform - Pre-Order Kedai Kopi Terintegrasi Sistem Loyalty</p>
+            <p class="text-[10px] text-cream/50">Solusi Eliminasi Antrean Jam Sibuk & Elevasi Retensi Pelanggan Tanpa Friction Login.</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT APP LOGIC & STATE ENGINE -->
+    <script>
+        // INITIAL DEFAULT STATE
+        const INITIAL_STATE = {
+            user: {
+                name: "Alex Kopi",
+                points: 350,
+                totalSpend: 185000,
+                birthdayClaimed: false,
+                phone: "0812-8899-7766"
+            },
+            cart: [],
+            selectedOutlet: "Cabang Sudirman Central",
+            selectedSlot: "Ambil Sekarang (~10 mnt)",
+            selectedPayment: "qris",
+            activeOrder: null,
+            history: [],
+            pointsRedeemed: 0,
+            quests: [
+                { id: 'q1', title: 'Morning Booster', desc: 'Pesan kopi sebelum jam 11:00', reward: 40, goal: 1, current: 0, claimed: false },
+                { id: 'q2', title: 'Pecinta Oat Milk', desc: 'Coba kustomisasi Oat Milk', reward: 60, goal: 1, current: 0, claimed: false },
+                { id: 'q3', title: 'Fast-Track Loyalis', desc: 'Selesaikan 1 pesanan Fast-Track', reward: 50, goal: 1, current: 0, claimed: false }
+            ]
+        };
+
+        // MENU CATALOG DATA WITH HIGH QUALITY IMAGES
+        const MENU_CATALOG = [
+            { id: 'm1', name: 'Kopi Susu Gula Aren', category: 'kopi-susu', price: 24000, prepTime: '3 Mnt', tag: 'Best Seller', desc: 'Espresso ganda, susu segar & gula aren organik', img: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=400&auto=format&fit=crop&q=80' },
+            { id: 'm2', name: 'Caramel Macchiato Ice', category: 'kopi-susu', price: 29000, prepTime: '4 Mnt', tag: 'Favorit', desc: 'Espresso lembut dengan sirup karamel gurih & foam harum', img: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=400&auto=format&fit=crop&q=80' },
+            { id: 'm3', name: 'Double Shot Americano', category: 'espresso', price: 18000, prepTime: '2 Mnt', tag: 'Bold', desc: 'Double shot arabika blend pilihan tanpa campuran gula', img: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&auto=format&fit=crop&q=80' },
+            { id: 'm4', name: 'Creamy Uji Matcha', category: 'non-coffee', price: 27000, prepTime: '3 Mnt', tag: 'Non-Kopi', desc: 'Matcha Kyoto premium dipadu susu murni gurih', img: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=400&auto=format&fit=crop&q=80' },
+            { id: 'm5', name: 'Butter Croissant Artisanal', category: 'pastry', price: 22000, prepTime: '2 Mnt', tag: 'Fresh Bake', desc: 'Pastry mentega Prancis renyah dipanggang tiap pagi', img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&auto=format&fit=crop&q=80' },
+            { id: 'm6', name: 'Spanish Latte Blend', category: 'kopi-susu', price: 26000, prepTime: '3 Mnt', tag: 'Rich', desc: 'Espresso kaya rasa dengan kelembutan condensed milk', img: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&auto=format&fit=crop&q=80' }
+        ];
+
+        // LOAD STATE FROM LOCALSTORAGE
+        let state = JSON.parse(localStorage.getItem('kopifast_v2_state')) || INITIAL_STATE;
+        
+        let selectedProduct = null;
+        let activeCustoms = { size: 'Regular', sizePrice: 0, sugar: 'Normal Sugar', ice: 'Normal Ice', extraShot: 0, oatMilk: 0 };
+
+        function saveState() {
+            localStorage.setItem('kopifast_v2_state', JSON.stringify(state));
+            renderApp();
+        }
+
+        function confirmResetData() {
+            if (confirm("Reset seluruh data demo ke kondisi awal?")) {
+                localStorage.removeItem('kopifast_v2_state');
+                state = JSON.parse(JSON.stringify(INITIAL_STATE));
+                saveState();
+                showToast("Data demo berhasil di-reset!", "info");
+            }
+        }
+
+        // TIER COMPUTATION LOGIC
+        function getTierInfo(pts) {
+            if (pts >= 1500) {
+                return { name: 'Gold Member', multiplier: 1.5, discountPct: 0.10, threshold: 1500, max: 2000 };
+            } else if (pts >= 500) {
+                return { name: 'Silver Member', multiplier: 1.25, discountPct: 0.05, threshold: 1500, max: 1500 };
+            } else {
+                return { name: 'Bronze Member', multiplier: 1.0, discountPct: 0.0, threshold: 500, max: 500 };
+            }
+        }
+
+        // TAB SWITCHING
+        function switchTab(tab) {
+            const appTab = document.getElementById('tab-app');
+            const prdTab = document.getElementById('tab-prd');
+            const appBtn = document.getElementById('nav-app-btn');
+            const prdBtn = document.getElementById('nav-prd-btn');
+
+            if (tab === 'app') {
+                appTab.classList.remove('hidden');
+                prdTab.classList.add('hidden');
+                appBtn.className = "flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all bg-amber-400 text-espresso-950 shadow";
+                prdBtn.className = "flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all text-cream/80 hover:text-cream hover:bg-espresso-800";
+            } else {
+                prdTab.classList.remove('hidden');
+                appTab.classList.add('hidden');
+                prdBtn.className = "flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all bg-amber-400 text-espresso-950 shadow";
+                appBtn.className = "flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all text-cream/80 hover:text-cream hover:bg-espresso-800";
+            }
+        }
+
+        // RENDER APP CORE
+        function renderApp() {
+            const tier = getTierInfo(state.user.points);
+
+            // User Profile Header
+            document.getElementById('user-name-display').innerText = state.user.name;
+            document.getElementById('user-points').innerText = `${state.user.points} Pts`;
+            document.getElementById('quick-points').innerText = `${state.user.points} Pts`;
+
+            const tierPill = document.getElementById('tier-tag-pill');
+            tierPill.innerText = tier.name.toUpperCase();
+            
+            const quickBadge = document.getElementById('quick-tier-badge');
+            quickBadge.innerText = tier.name;
+
+            // Tier Progress Bar calculation
+            let progressPct = 0;
+            if (tier.name === 'Bronze Member') {
+                progressPct = Math.min((state.user.points / 500) * 100, 100);
+                document.getElementById('tier-progress-text').innerText = `${state.user.points} / 500 Pts ke Silver`;
+            } else if (tier.name === 'Silver Member') {
+                progressPct = Math.min(((state.user.points - 500) / 1000) * 100, 100);
+                document.getElementById('tier-progress-text').innerText = `${state.user.points} / 1.500 Pts ke Gold`;
+            } else {
+                progressPct = 100;
+                document.getElementById('tier-progress-text').innerText = `Gold Top Tier (${tier.multiplier}x Multiplier)`;
+            }
+            document.getElementById('tier-progress-bar').style.width = `${progressPct}%`;
+
+            // Birthday reward button status
+            const bdayBtn = document.getElementById('birthday-reward-btn');
+            if (state.user.birthdayClaimed) {
+                bdayBtn.disabled = true;
+                bdayBtn.className = "w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-espresso-900 text-cream/50 text-xs flex items-center justify-center space-x-2 border border-espresso-800 cursor-not-allowed";
+                bdayBtn.innerHTML = `<i class="fa-solid fa-check"></i> <span>Reward Ultah Diklaim</span>`;
+            }
+
+            // Quests Render
+            renderQuests();
+
+            // Menu Grid Render
+            renderMenuCatalog();
+
+            // Cart Render
+            renderCart();
+
+            // Live Tracker Render
+            renderTracker();
+
+            // Order History Render
+            renderOrderHistory();
+        }
+
+        // EDIT NAME
+        function editUserName() {
+            const newName = prompt("Ubah Nama Member Anda:", state.user.name);
+            if (newName && newName.trim() !== "") {
+                state.user.name = newName.trim();
+                saveState();
+                showToast("Nama member berhasil diubah!", "success");
+            }
+        }
+
+        // BIRTHDAY REWARD
+        function claimBirthdayReward() {
+            if (state.user.birthdayClaimed) return;
+            state.user.points += 150;
+            state.user.birthdayClaimed = true;
+            saveState();
+            showToast("🎁 Selamat Ulang Tahun! Bonus +150 Poin Cashback ditambahkan!", "success");
+        }
+
+        // QUESTS ENGINE
+        function renderQuests() {
+            const questContainer = document.getElementById('quest-list');
+            questContainer.innerHTML = state.quests.map(q => {
+                const isReadyToClaim = q.current >= q.goal && !q.claimed;
+                return `
+                    <div class="p-3 bg-espresso-50/80 rounded-2xl border border-espresso-200/80 flex flex-col justify-between space-y-2">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h4 class="text-xs font-bold text-espresso-900">${q.title}</h4>
+                                <span class="text-[9px] bg-amber-100 text-amber-900 font-extrabold px-1.5 py-0.5 rounded">+${q.reward} Pts</span>
+                            </div>
+                            <p class="text-[10px] text-espresso-600 mt-0.5 leading-tight">${q.desc}</p>
+                        </div>
+                        <div>
+                            <div class="w-full bg-espresso-200 rounded-full h-1.5 overflow-hidden mb-1.5">
+                                <div class="bg-amber-500 h-full rounded-full transition-all" style="width: ${Math.min((q.current/q.goal)*100, 100)}%"></div>
+                            </div>
+                            ${q.claimed ? `
+                                <span class="block text-center text-[10px] font-bold text-emerald-800 bg-emerald-50 py-1 rounded-lg">Klaim Selesai ✓</span>
+                            ` : isReadyToClaim ? `
+                                <button onclick="claimQuest('${q.id}')" class="w-full bg-amber-400 hover:bg-amber-300 text-espresso-950 font-bold py-1 rounded-lg text-[10px] shadow transition">
+                                    Klaim +${q.reward} Poin
+                                </button>
+                            ` : `
+                                <span class="block text-center text-[10px] font-bold text-espresso-600">${q.current}/${q.goal} Selesai</span>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function claimQuest(questId) {
+            const quest = state.quests.find(q => q.id === questId);
+            if (quest && quest.current >= quest.goal && !quest.claimed) {
+                quest.claimed = true;
+                state.user.points += quest.reward;
+                saveState();
+                showToast(`🏆 Misi "${quest.title}" diklaim! +${quest.reward} Poin Cashback`, "success");
+            }
+        }
+
+        // CATALOG & FILTERING
+        let activeCategory = 'all';
+
+        function filterCategory(cat, el) {
+            activeCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = "cat-btn border px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-espresso-800 border-espresso-200 hover:bg-espresso-50";
+            });
+            el.className = "cat-btn active border px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-espresso-950 text-amber-300 border-espresso-950 shadow-sm";
+            renderMenuCatalog();
+        }
+
+        function renderMenuCatalog() {
+            const grid = document.getElementById('menu-grid');
+            const items = activeCategory === 'all' ? MENU_CATALOG : MENU_CATALOG.filter(m => m.category === activeCategory);
+            
+            grid.innerHTML = items.map(item => `
+                <div class="bg-white rounded-3xl p-4 border border-espresso-100 hover:border-amber-400/70 shadow-sm hover:shadow-md transition duration-200 flex flex-col justify-between group overflow-hidden">
+                    <div class="space-y-3">
+                        <div class="relative h-36 rounded-2xl overflow-hidden bg-espresso-100">
+                            <img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            <span class="absolute top-2 left-2 bg-espresso-950/90 backdrop-blur-sm text-amber-300 text-[9px] font-black px-2 py-0.5 rounded-md border border-amber-400/40">
+                                ${item.tag}
+                            </span>
+                            <span class="absolute bottom-2 right-2 bg-white/95 backdrop-blur-sm text-espresso-900 text-[10px] font-bold px-2 py-0.5 rounded-md shadow">
+                                <i class="fa-regular fa-clock text-amber-600"></i> ${item.prepTime}
+                            </span>
+                        </div>
+                        <div>
+                            <h4 class="font-serif font-bold text-espresso-900 text-base group-hover:text-amber-700 transition">${item.name}</h4>
+                            <p class="text-xs text-espresso-600 mt-1 line-clamp-2 leading-relaxed">${item.desc}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-espresso-50 flex items-center justify-between">
+                        <span class="font-bold text-espresso-900 text-sm font-mono">Rp ${item.price.toLocaleString('id-ID')}</span>
+                        <button onclick="openCustomizer('${item.id}')" class="bg-espresso-950 hover:bg-amber-400 text-amber-300 hover:text-espresso-950 text-xs font-extrabold px-3.5 py-2 rounded-xl transition flex items-center space-x-1 shadow">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>Pesan</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // CUSTOMIZER MODAL
+        function openCustomizer(productId) {
+            selectedProduct = MENU_CATALOG.find(p => p.id === productId);
+            activeCustoms = { size: 'Regular', sizePrice: 0, sugar: 'Normal Sugar', ice: 'Normal Ice', extraShot: 0, oatMilk: 0 };
+            
+            document.getElementById('modal-title').innerText = selectedProduct.name;
+            document.getElementById('modal-desc').innerText = selectedProduct.desc;
+            document.getElementById('check-shot').checked = false;
+            document.getElementById('check-oat').checked = false;
+            document.getElementById('barista-notes').value = '';
+            
+            resetOptBtns('size-options');
+            resetOptBtns('sugar-options');
+            resetOptBtns('ice-options');
+
+            updateModalPrice();
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function resetOptBtns(containerId) {
+            const btns = document.querySelectorAll(`#${containerId} .opt-btn`);
+            btns.forEach((btn, idx) => {
+                btn.className = idx === 0 
+                    ? "opt-btn active border-2 border-amber-500 bg-amber-50 text-espresso-900 py-2 rounded-xl text-xs font-bold" 
+                    : "opt-btn border border-espresso-200 text-espresso-700 py-2 rounded-xl text-xs font-bold hover:bg-espresso-50";
+            });
+        }
+
+        function selectOpt(type, val, priceAdd, el) {
+            activeCustoms[type] = val;
+            if (type === 'size') activeCustoms.sizePrice = priceAdd;
+            
+            const parent = el.parentElement;
+            parent.querySelectorAll('.opt-btn').forEach(b => b.className = "opt-btn border border-espresso-200 text-espresso-700 py-2 rounded-xl text-xs font-bold hover:bg-espresso-50");
+            el.className = "opt-btn active border-2 border-amber-500 bg-amber-50 text-espresso-900 py-2 rounded-xl text-xs font-bold";
+            
+            updateModalPrice();
+        }
+
+        function toggleAddon(key, val, chk) {
+            activeCustoms[key] = chk.checked ? val : 0;
+            updateModalPrice();
+
+            // Track quest Oat Milk
+            if (key === 'oatMilk' && chk.checked) {
+                const qOat = state.quests.find(q => q.id === 'q2');
+                if (qOat && qOat.current === 0) {
+                    qOat.current = 1;
+                    saveState();
+                }
+            }
+        }
+
+        function updateModalPrice() {
+            let total = selectedProduct.price + activeCustoms.sizePrice + activeCustoms.extraShot + activeCustoms.oatMilk;
+            document.getElementById('modal-total-price').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        function confirmAddToCart() {
+            const notes = document.getElementById('barista-notes').value.trim();
+            const unitPrice = selectedProduct.price + activeCustoms.sizePrice + activeCustoms.extraShot + activeCustoms.oatMilk;
+            
+            const cartItem = {
+                cartId: Date.now(),
+                productId: selectedProduct.id,
+                name: selectedProduct.name,
+                unitPrice: unitPrice,
+                qty: 1,
+                customs: { ...activeCustoms, notes: notes }
+            };
+
+            state.cart.push(cartItem);
+            closeModal();
+            saveState();
+            showToast(`${selectedProduct.name} ditambahkan ke keranjang pre-order!`, "success");
+        }
+
+        // CART LOGIC
+        function selectPaymentMethod(method, el) {
+            document.querySelectorAll('#payment-methods-grid .pay-option').forEach(b => {
+                b.className = "pay-option border border-espresso-200 rounded-xl p-2.5 flex flex-col items-center justify-center cursor-pointer hover:border-amber-500 transition";
+            });
+            el.className = "pay-option active border-2 border-amber-500 bg-amber-50/80 rounded-xl p-2.5 flex flex-col items-center justify-center cursor-pointer transition";
+            state.selectedPayment = method;
+            saveState();
+        }
+
+        function selectPickupSlot(el, slotTime) {
+            document.querySelectorAll('#pickup-slots .slot-btn').forEach(b => {
+                b.className = "slot-btn border border-espresso-200 text-espresso-700 text-xs font-bold py-2 rounded-xl text-center hover:bg-espresso-50";
+            });
+            el.className = "slot-btn active border-2 border-amber-500 bg-amber-50 text-espresso-900 text-xs font-bold py-2 rounded-xl text-center shadow-sm";
+            state.selectedSlot = slotTime;
+            saveState();
+        }
+
+        function changeQty(cartId, delta) {
+            const item = state.cart.find(i => i.cartId === cartId);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) {
+                    state.cart = state.cart.filter(i => i.cartId !== cartId);
+                }
+                saveState();
+            }
+        }
+
+        function renderCart() {
+            const cartContainer = document.getElementById('cart-items');
+            const cartCountBadge = document.getElementById('cart-item-count');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            
+            const totalQty = state.cart.reduce((sum, i) => sum + i.qty, 0);
+            cartCountBadge.innerText = `${totalQty} Item`;
+
+            if (state.cart.length === 0) {
+                cartContainer.innerHTML = `
+                    <div class="text-center py-8 text-espresso-400 text-xs">
+                        <i class="fa-solid fa-mug-saucer text-4xl mb-2 text-espresso-200 block"></i>
+                        Keranjang pre-order masih kosong. Pilihlah racikan favoritmu!
+                    </div>
+                `;
+                checkoutBtn.disabled = true;
+                updateSummary(0);
+                return;
+            }
+
+            checkoutBtn.disabled = false;
+            let subtotal = 0;
+
+            cartContainer.innerHTML = state.cart.map(item => {
+                const itemTotal = item.unitPrice * item.qty;
+                subtotal += itemTotal;
+
+                const addOnTexts = [];
+                if (item.customs.extraShot > 0) addOnTexts.push('+Extra Shot');
+                if (item.customs.oatMilk > 0) addOnTexts.push('+Oat Milk');
+                
+                return `
+                    <div class="p-3 bg-espresso-50 rounded-2xl border border-espresso-200/80 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h5 class="text-xs font-bold text-espresso-900">${item.name}</h5>
+                                <p class="text-[10px] text-espresso-600 font-medium mt-0.5">
+                                    ${item.customs.size} • ${item.customs.sugar} • ${item.customs.ice} ${addOnTexts.length ? '• ' + addOnTexts.join(' ') : ''}
+                                </p>
+                                ${item.customs.notes ? `<p class="text-[9px] text-amber-800 italic mt-0.5"><i class="fa-solid fa-note-sticky"></i> "${item.customs.notes}"</p>` : ''}
+                            </div>
+                            <span class="text-xs font-bold text-espresso-900 font-mono">Rp ${itemTotal.toLocaleString('id-ID')}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1 border-t border-espresso-200/60">
+                            <span class="text-[10px] text-espresso-500">Rp ${item.unitPrice.toLocaleString('id-ID')} / item</span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeQty(${item.cartId}, -1)" class="w-6 h-6 rounded-lg bg-espresso-200 hover:bg-espresso-300 text-espresso-900 flex items-center justify-center text-xs font-bold">-</button>
+                                <span class="text-xs font-bold text-espresso-900 w-4 text-center">${item.qty}</span>
+                                <button onclick="changeQty(${item.cartId}, 1)" class="w-6 h-6 rounded-lg bg-espresso-200 hover:bg-espresso-300 text-espresso-900 flex items-center justify-center text-xs font-bold">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateSummary(subtotal);
+        }
+
+        function updateSummary(subtotal) {
+            const tier = getTierInfo(state.user.points);
+            const tierDiscount = subtotal * tier.discountPct;
+
+            const slider = document.getElementById('points-slider');
+            // 1 Point = Rp 100
+            const maxPointsCanUse = Math.min(state.user.points, Math.floor((subtotal - tierDiscount) / 100));
+            
+            slider.max = Math.max(0, maxPointsCanUse);
+            if (parseInt(slider.value) > maxPointsCanUse) {
+                slider.value = maxPointsCanUse;
+                state.pointsRedeemed = maxPointsCanUse;
+            } else {
+                state.pointsRedeemed = parseInt(slider.value);
+            }
+
+            const pointsDiscount = state.pointsRedeemed * 100;
+            const finalTotal = Math.max(0, subtotal - tierDiscount - pointsDiscount);
+            
+            // Calculate new points earned (10 Pts per 10k * multiplier)
+            const pointsEarned = Math.floor((finalTotal / 10000) * 10 * tier.multiplier);
+
+            document.getElementById('summary-subtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            document.getElementById('summary-tier-discount').innerText = `- Rp ${tierDiscount.toLocaleString('id-ID')}`;
+            document.getElementById('summary-points-discount').innerText = `- Rp ${pointsDiscount.toLocaleString('id-ID')}`;
+            document.getElementById('summary-total').innerText = `Rp ${finalTotal.toLocaleString('id-ID')}`;
+            document.getElementById('summary-points-earned').innerText = `+${pointsEarned} Pts`;
+            document.getElementById('redeem-discount-label').innerText = `- Rp ${pointsDiscount.toLocaleString('id-ID')}`;
+            document.getElementById('points-slider-val').innerText = `${state.pointsRedeemed} Pts`;
+        }
+
+        function updatePointsRedemption() {
+            const subtotal = state.cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+            updateSummary(subtotal);
+        }
+
+        // PAYMENT CONFIRMATION MODAL & CHECKOUT ENGINE
+        function openPaymentConfirmationModal() {
+            if (state.cart.length === 0) return;
+
+            const subtotal = state.cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+            const tier = getTierInfo(state.user.points);
+            const tierDiscount = subtotal * tier.discountPct;
+            const pointsDiscount = state.pointsRedeemed * 100;
+            const finalTotal = Math.max(0, subtotal - tierDiscount - pointsDiscount);
+
+            const modal = document.getElementById('pay-modal');
+            const iconDiv = document.getElementById('pay-modal-icon');
+            const title = document.getElementById('pay-modal-title');
+            const subTitle = document.getElementById('pay-modal-subtitle');
+            const amount = document.getElementById('pay-modal-amount');
+            const methodTag = document.getElementById('pay-modal-method-tag');
+            const body = document.getElementById('pay-modal-body');
+
+            amount.innerText = `Rp ${finalTotal.toLocaleString('id-ID')}`;
+
+            const method = state.selectedPayment || 'qris';
+
+            if (method === 'gopay') {
+                iconDiv.className = "w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg bg-sky-500 text-white";
+                iconDiv.innerHTML = `<i class="fa-solid fa-wallet"></i>`;
+                title.innerText = "Pembayaran GoPay";
+                subTitle.innerText = "Otorisasi instan saldo GoPay Anda";
+                methodTag.innerText = "GoPay";
+                methodTag.className = "text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-sky-100 text-sky-800";
+                body.innerHTML = `
+                    <div>
+                        <label class="block text-[11px] font-bold text-espresso-800 mb-1">Nomor Akun GoPay / No. HP:</label>
+                        <input type="text" value="${state.user.phone}" class="w-full bg-espresso-50 border border-espresso-200 text-xs rounded-xl p-2.5 font-mono font-bold text-espresso-900 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <p class="text-[9px] text-espresso-600 mt-1"><i class="fa-solid fa-lock"></i> Notifikasi 1-Tap Pay akan dikirim ke aplikasi GoPay Anda.</p>
+                    </div>
+                `;
+            } else if (method === 'ovo') {
+                iconDiv.className = "w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg bg-purple-600 text-white";
+                iconDiv.innerHTML = `<i class="fa-solid fa-mobile-retro"></i>`;
+                title.innerText = "Pembayaran OVO";
+                subTitle.innerText = "Masuk ke aplikasi OVO untuk konfirmasi";
+                methodTag.innerText = "OVO";
+                methodTag.className = "text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-purple-100 text-purple-800";
+                body.innerHTML = `
+                    <div>
+                        <label class="block text-[11px] font-bold text-espresso-800 mb-1">Nomor Ponsel OVO Terdaftar:</label>
+                        <input type="text" value="${state.user.phone}" class="w-full bg-espresso-50 border border-espresso-200 text-xs rounded-xl p-2.5 font-mono font-bold text-espresso-900 focus:outline-none focus:ring-2 focus:ring-purple-600">
+                        <p class="text-[9px] text-espresso-600 mt-1"><i class="fa-solid fa-bell"></i> Push Notification OVO Cash akan muncul dalam 5 detik.</p>
+                    </div>
+                `;
+            } else if (method === 'dana') {
+                iconDiv.className = "w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg bg-blue-600 text-white";
+                iconDiv.innerHTML = `<i class="fa-solid fa-shield-halved"></i>`;
+                title.innerText = "Pembayaran DANA";
+                subTitle.innerText = "Dompet Digital DANA Indonesia";
+                methodTag.innerText = "DANA";
+                methodTag.className = "text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-blue-100 text-blue-800";
+                body.innerHTML = `
+                    <div>
+                        <label class="block text-[11px] font-bold text-espresso-800 mb-1">Nomor Akun DANA:</label>
+                        <input type="text" value="${state.user.phone}" class="w-full bg-espresso-50 border border-espresso-200 text-xs rounded-xl p-2.5 font-mono font-bold text-espresso-900 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                        <p class="text-[9px] text-espresso-600 mt-1"><i class="fa-solid fa-shield-cat"></i> Pembayaran terlindungi oleh DANA Protection.</p>
+                    </div>
+                `;
+            } else {
+                iconDiv.className = "w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg bg-espresso-950 text-amber-300";
+                iconDiv.innerHTML = `<i class="fa-solid fa-qrcode"></i>`;
+                title.innerText = "Scan QRIS Instan";
+                subTitle.innerText = "Mendukung seluruh m-Banking & E-Wallet";
+                methodTag.innerText = "QRIS";
+                methodTag.className = "text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-amber-100 text-amber-900";
+                body.innerHTML = `
+                    <div class="text-center space-y-2">
+                        <div class="w-32 h-32 mx-auto bg-espresso-50 p-2 rounded-2xl border border-espresso-200">
+                            <svg viewBox="0 0 100 100" class="w-full h-full text-espresso-950 fill-current">
+                                <path d="M0,0 h35 v35 h-35 z M5,5 v25 h25 v-25 z M10,10 h15 v15 h-15 z"/>
+                                <path d="M65,0 h35 v35 h-35 z M70,5 v25 h25 v-25 z M75,10 h15 v15 h-15 z"/>
+                                <path d="M0,65 h35 v35 h-35 z M5,70 v25 h25 v-25 z M10,75 h15 v15 h-15 z"/>
+                                <path d="M40,10 h15 v15 h-15 z M45,40 h20 v20 h-20 z M70,65 h15 v15 h-15 z M85,85 h15 v15 h-15 z"/>
+                            </svg>
+                        </div>
+                        <p class="text-[10px] text-espresso-600">Scan QR Code dengan GoPay, OVO, DANA, BCA Mobile, Livin, dll.</p>
+                    </div>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closePayModal() {
+            document.getElementById('pay-modal').classList.add('hidden');
+        }
+
+        function processCheckout() {
+            if (state.cart.length === 0) return;
+
+            closePayModal();
+
+            const subtotal = state.cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+            const tier = getTierInfo(state.user.points);
+            const tierDiscount = subtotal * tier.discountPct;
+            const pointsDiscount = state.pointsRedeemed * 100;
+            const finalTotal = Math.max(0, subtotal - tierDiscount - pointsDiscount);
+            const pointsEarned = Math.floor((finalTotal / 10000) * 10 * tier.multiplier);
+
+            // Deduct points redeemed & add points earned
+            state.user.points = state.user.points - state.pointsRedeemed + pointsEarned;
+            state.user.totalSpend += finalTotal;
+
+            const queueNo = `#FT-${Math.floor(100 + Math.random() * 900)}`;
+            const payMethodLabel = (state.selectedPayment || 'qris').toUpperCase();
+
+            state.activeOrder = {
+                id: Date.now(),
+                queueNo: queueNo,
+                branch: state.selectedOutlet,
+                pickupSlot: state.selectedSlot,
+                paymentMethod: payMethodLabel,
+                statusStep: 1, // 1: Diterima, 2: Sedang Diracik, 3: Siap Ambil
+                items: [...state.cart],
+                totalPaid: finalTotal,
+                pointsEarned: pointsEarned,
+                createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            // Update Morning Booster quest if applicable
+            const qMorning = state.quests.find(q => q.id === 'q1');
+            if (qMorning && qMorning.current === 0) {
+                qMorning.current = 1;
+            }
+
+            // Reset cart & slider
+            state.cart = [];
+            state.pointsRedeemed = 0;
+            document.getElementById('points-slider').value = 0;
+
+            saveState();
+            showToast(`✨ Pre-Order Sukses via ${payMethodLabel}! Nomor Antrean ${queueNo} dikirim ke Barista.`, "success");
+            scrollToTracker();
+        }
+
+        function scrollToTracker() {
+            const panel = document.getElementById('live-tracker-panel');
+            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function renderTracker() {
+            const panel = document.getElementById('live-tracker-panel');
+            const banner = document.getElementById('active-order-banner');
+
+            if (!state.activeOrder) {
+                panel.classList.add('hidden');
+                banner.classList.add('hidden');
+                return;
+            }
+
+            panel.classList.remove('hidden');
+            banner.classList.remove('hidden');
+            
+            const order = state.activeOrder;
+
+            document.getElementById('pass-queue-no').innerText = order.queueNo;
+            document.getElementById('banner-queue-no').innerText = order.queueNo;
+            document.getElementById('pass-branch').innerText = order.branch;
+            document.getElementById('pass-time').innerText = order.pickupSlot;
+
+            const badge = document.getElementById('pass-status-badge');
+            const bannerStatus = document.getElementById('banner-status-text');
+            const line = document.getElementById('pass-progress-line');
+            const node1 = document.getElementById('step-node-1');
+            const node2 = document.getElementById('step-node-2');
+            const node3 = document.getElementById('step-node-3');
+            const completeBtn = document.getElementById('complete-order-btn');
+
+            if (order.statusStep === 1) {
+                badge.innerText = "Diterima Barista";
+                badge.className = "text-xs font-black text-espresso-950 bg-amber-400 px-3 py-1 rounded-full shadow";
+                bannerStatus.innerText = "Pesanan Diterima Barista";
+                line.style.width = "0%";
+                node1.className = "step-node relative z-10 w-8 h-8 rounded-full bg-amber-400 text-espresso-950 font-black flex items-center justify-center text-xs shadow-md border-2 border-amber-300";
+                node2.className = "step-node relative z-10 w-8 h-8 rounded-full bg-espresso-800 text-amber-100 font-bold flex items-center justify-center text-xs border border-espresso-600";
+                node3.className = "step-node relative z-10 w-8 h-8 rounded-full bg-espresso-800 text-amber-100 font-bold flex items-center justify-center text-xs border border-espresso-600";
+                completeBtn.classList.add('hidden');
+            } else if (order.statusStep === 2) {
+                badge.innerText = "Sedang Diracik ☕";
+                badge.className = "text-xs font-black text-espresso-950 bg-amber-400 px-3 py-1 rounded-full shadow";
+                bannerStatus.innerText = "Sedang Diracik Barista";
+                line.style.width = "50%";
+                node1.className = "step-node relative z-10 w-8 h-8 rounded-full bg-amber-400 text-espresso-950 font-black flex items-center justify-center text-xs shadow-md border-2 border-amber-300";
+                node2.className = "step-node relative z-10 w-8 h-8 rounded-full bg-amber-400 text-espresso-950 font-black flex items-center justify-center text-xs shadow-md border-2 border-amber-300 animate-pulse";
+                node3.className = "step-node relative z-10 w-8 h-8 rounded-full bg-espresso-800 text-amber-100 font-bold flex items-center justify-center text-xs border border-espresso-600";
+                completeBtn.classList.add('hidden');
+            } else {
+                badge.innerText = "Siap Ambil di Rak! 🎉";
+                badge.className = "text-xs font-black text-espresso-950 bg-emerald-400 px-3 py-1 rounded-full shadow animate-pulse";
+                bannerStatus.innerText = "SIAP DIAMBIL DI RAK FAST-TRACK!";
+                line.style.width = "100%";
+                node1.className = "step-node relative z-10 w-8 h-8 rounded-full bg-amber-400 text-espresso-950 font-black flex items-center justify-center text-xs shadow-md border-2 border-amber-300";
+                node2.className = "step-node relative z-10 w-8 h-8 rounded-full bg-amber-400 text-espresso-950 font-black flex items-center justify-center text-xs shadow-md border-2 border-amber-300";
+                node3.className = "step-node relative z-10 w-8 h-8 rounded-full bg-emerald-400 text-espresso-950 font-black flex items-center justify-center text-xs shadow-md border-2 border-emerald-300 animate-bounce";
+                completeBtn.classList.remove('hidden');
+            }
+        }
+
+        function advanceOrderStatus() {
+            if (!state.activeOrder) return;
+            if (state.activeOrder.statusStep < 3) {
+                state.activeOrder.statusStep += 1;
+                saveState();
+                if (state.activeOrder.statusStep === 3) {
+                    showToast("🛎️ Kopi Anda SIAP diambil di Meja Fast-Track tanpa mengantre!", "success");
+                }
+            } else {
+                showToast("Pesanan sudah siap diambil. Klik 'Pesanan Diambil' setelah selesai.", "info");
+            }
+        }
+
+        function completeActiveOrder() {
+            if (!state.activeOrder) return;
+
+            // Move to history
+            state.history.unshift({ ...state.activeOrder, completedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) });
+            
+            // Update Fast-Track Loyalis quest
+            const qFT = state.quests.find(q => q.id === 'q3');
+            if (qFT && qFT.current === 0) {
+                qFT.current = 1;
+            }
+
+            state.activeOrder = null;
+            saveState();
+            showToast("🎉 Pesanan berhasil diambil! Selamat menikmati kopi Anda.", "success");
+        }
+
+        // ORDER HISTORY ENGINE
+        function toggleOrderHistory() {
+            const list = document.getElementById('history-list');
+            const chevron = document.getElementById('history-chevron');
+            list.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        function renderOrderHistory() {
+            const container = document.getElementById('history-list');
+            const countLabel = document.getElementById('history-count');
+            
+            countLabel.innerText = `${state.history.length} Pesanan`;
+
+            if (state.history.length === 0) {
+                container.innerHTML = `<p class="text-xs text-espresso-400 text-center py-3">Belum ada riwayat pesanan selesai.</p>`;
+                return;
+            }
+
+            container.innerHTML = state.history.map(item => `
+                <div class="p-3 bg-espresso-50/80 rounded-2xl border border-espresso-100 flex items-center justify-between text-xs">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-mono font-bold text-espresso-900">${item.queueNo}</span>
+                            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Selesai</span>
+                        </div>
+                        <p class="text-[10px] text-espresso-500 mt-0.5">${item.branch} • ${item.completedAt || item.createdAt}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-bold text-espresso-900 font-mono block">Rp ${item.totalPaid.toLocaleString('id-ID')}</span>
+                        <span class="text-[9px] text-amber-700 font-semibold">+${item.pointsEarned} Pts</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // TOAST ENGINE
+        function showToast(msg, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === "success" 
+                ? "bg-espresso-950 text-amber-300 border-amber-400 shadow-2xl" 
+                : "bg-espresso-900 text-cream border-espresso-700 shadow-xl";
+            
+            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl border ${bgClass} text-xs font-bold flex items-center space-x-2 transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info text-amber-400 text-base"></i> <span>${msg}</span>`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3800);
+        }
+
+        // INIT ON LOAD
+        window.onload = function() {
+            renderApp();
+        };
+    </script>
+</body>
+</html>
